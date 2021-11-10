@@ -22,12 +22,10 @@ class CourseController {
     store(req, res, next) {
         req.body.image = `https://img.youtube.com/vi/${req.body.videoId}/sddefault.jpg`
         const course = new Course(req.body);
-
-        course.save()
+        course
+            .save()
             .then(() => res.redirect('/me/stored/courses'))
-            .catch(error => {
-
-            });
+            .catch(next);
     };
 
     //[GET] /courses/:id/edit
@@ -71,6 +69,37 @@ class CourseController {
             .then(() => res.redirect('back'))
             .catch(next);
     };
+
+    //[POST] /courses/handle-stored-form-action
+    handleStoredFormAction(req, res, next) {
+        switch(req.body.action) {
+            case 'delete':
+                Course.delete({ _id:{ $in: req.body.courseIds } })
+                    .then(() => res.redirect('back'))
+                    .catch(next);
+                break;
+            default:
+                res.json({ message: 'Action is invalid!)'});
+        }
+    };
+
+     //[POST] /courses/handle-trash-form-action
+     handleTrashFormAction(req, res, next) {
+        switch(req.body.action) {
+            case 'permanentlyDelete':
+                Course.deleteOne({ _id:{ $in: req.body.courseIds } })
+                    .then(() => res.redirect('back'))
+                    .catch(next);
+                break;
+                case 'restore':
+                    Course.restore({ _id:{ $in: req.body.courseIds } })
+                        .then(() => res.redirect('back'))
+                        .catch(next);
+                    break;
+            default:
+                res.json({ message: 'Action is invalid!)'});
+        }
+    }
 
 };
 
